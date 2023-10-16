@@ -14,7 +14,7 @@ function App() {
   useEffect(() => {
     const pollServer = async () => {
       try {
-        const response = await axios.get(`http://localhost:4000/poll`);
+        const response = await axios.get(`http://20.160.160.36:4000/poll`);
         const data = response.data;
 
         // Update the total records
