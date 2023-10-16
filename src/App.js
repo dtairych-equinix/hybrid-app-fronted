@@ -8,8 +8,8 @@ function App() {
   const [totalRecords, setTotalRecords] = useState(0);
   const [cumulativeDataSize, setCumulativeDataSize] = useState(0);
 
-  const apiUrl = process.env.API_URL;
-  const apiPort = process.env.API_PORT;
+  const apiUrl = process.env.REACT_APP_API_URL;
+  const apiPort = process.env.REACT_APP_API_PORT;
 
   useEffect(() => {
     const pollServer = async () => {
