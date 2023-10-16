@@ -8,13 +8,13 @@ function App() {
   const [totalRecords, setTotalRecords] = useState(0);
   const [cumulativeDataSize, setCumulativeDataSize] = useState(0);
 
-  const apiUrl = process.env.REACT_APP_API_URL;
-  const apiPort = process.env.REACT_APP_API_PORT;
+  // const apiUrl = process.env.REACT_APP_API_URL;
+  // const apiPort = process.env.REACT_APP_API_PORT;
 
   useEffect(() => {
     const pollServer = async () => {
       try {
-        const response = await axios.get(`${apiUrl}:${apiPort}/poll`);
+        const response = await axios.get(`http://localhost:4000/poll`);
         const data = response.data;
 
         // Update the total records
