@@ -5,7 +5,11 @@ const cors = require('cors'); // Import the cors package
 const app = express();
 const PORT = 4000;
 
-app.use(cors({ origin: 'http://20.160.160.36:3000' })); // Allow requests from React app
+const origin = process.argv[2];
+
+app.use(cors({ origin }));
+
+// app.use(cors({ origin: 'http://20.160.160.36:3000' })); // Allow requests from React app
 
 app.use(express.static(path.join(__dirname, 'build')));
 
