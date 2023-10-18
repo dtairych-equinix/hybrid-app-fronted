@@ -111,9 +111,10 @@ function App() {
         setResponseTimes((prevResponseTimes) => [...prevResponseTimes, data.responseTime]);
 
         // Limit the responseTimes array to the last 50 entries
-        if (prevResponseTimes.length > 50) {
+        if (responseTimes.length > 50) {
           setResponseTimes((prevResponseTimes) => prevResponseTimes.slice(-50));
         }
+        
 
         // Calculate the cumulative data size in MB and update the state
         const dataSizeInMB = data.totalRecords * calculateDataSizePerRecordInMB();
@@ -149,6 +150,11 @@ function App() {
     // Replace this with your actual data size calculation logic
     return 0.1; // Assuming each record is 0.1 MB for illustration purposes
   };
+
+  const costForLastRequestDisplay =
+  responseTimes.length > 0
+    ? cumulativeCost - (responseTimes.length === 1 ? 0 : cumulativeCost - responseTimes[responseTimes.length - 2])
+    : 0;
       
   return (
     <div className="container">
