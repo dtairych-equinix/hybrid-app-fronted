@@ -100,26 +100,25 @@ function App() {
         const { selectedCostKey, selectedCostValue } = costFactorResponse.data;
         setSelectedCostKey(selectedCostKey);
         setSelectedCostValue(selectedCostValue);
-
+  
         const response = await axios.get(`http://20.160.160.36:4000/poll`);
         const data = response.data;
-
+  
         // Update the total records
         setTotalRecords(data.totalRecords);
-
+  
         // Add the new response time to the array
         setResponseTimes((prevResponseTimes) => [...prevResponseTimes, data.responseTime]);
-
+  
         // Limit the responseTimes array to the last 50 entries
         if (responseTimes.length > 50) {
           setResponseTimes((prevResponseTimes) => prevResponseTimes.slice(-50));
         }
-        
-
+  
         // Calculate the cumulative data size in MB and update the state
         const dataSizeInMB = data.totalRecords * calculateDataSizePerRecordInMB();
         setCumulativeDataSize((prevCumulativeDataSize) => prevCumulativeDataSize + dataSizeInMB);
-
+  
         // Calculate the cost for the last request
         const costForLastRequest =
           data.totalRecords * calculateDataSizePerRecordInMB() * selectedCostValue;
@@ -128,16 +127,22 @@ function App() {
         console.log('Error fetching data -', error);
       }
     };
-
+  
     // Poll the server every 5 seconds and update the responseTimes state
     const interval = setInterval(pollServer, 5000);
-
+  
     // Cleanup the interval on component unmount
     return () => clearInterval(interval);
   }, [selectedCostValue]);
-
+  
   useEffect(() => {
-    // Calculate chartData based on the latest responseTimes and cumulativeCost
+    // Calculate cumulativeCost before calculating newChartData
+    const costForLastRequestDisplay =
+      responseTimes.length > 0
+        ? cumulativeCost - (responseTimes.length === 1 ? 0 : cumulativeCost - responseTimes[responseTimes.length - 2])
+        : 0;
+  
+    // Calculate newChartData based on the latest responseTimes and cumulativeCost
     const newChartData = responseTimes.map((time, idx) => ({
       interval: idx + 1,
       responseTime: time,
@@ -151,10 +156,10 @@ function App() {
     return 0.1; // Assuming each record is 0.1 MB for illustration purposes
   };
 
-  const costForLastRequestDisplay =
-  responseTimes.length > 0
-    ? cumulativeCost - (responseTimes.length === 1 ? 0 : cumulativeCost - responseTimes[responseTimes.length - 2])
-    : 0;
+  // const costForLastRequestDisplay =
+  // responseTimes.length > 0
+  //   ? cumulativeCost - (responseTimes.length === 1 ? 0 : cumulativeCost - responseTimes[responseTimes.length - 2])
+  //   : 0;
       
   return (
     <div className="container">
