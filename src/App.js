@@ -90,13 +90,13 @@ function App() {
   const [selectedCostKey, setSelectedCostKey] = useState('Internet');
   const [selectedCostValue, setSelectedCostValue] = useState(1.0);
   const [cumulativeCost, setCumulativeCost] = useState(0);
-  const [chartData, setChartData] = useState([]); // Initialize chartData
+  const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
     const pollServer = async () => {
       try {
         // Fetch the current cost factor from the server with every poll
-        const costFactorResponse = await axios.get('http://20.160.160.36:4000/get-cost-factor');
+        const costFactorResponse = await axios.get('/get-cost-factor');
         const { selectedCostKey, selectedCostValue } = costFactorResponse.data;
         setSelectedCostKey(selectedCostKey);
         setSelectedCostValue(selectedCostValue);
@@ -111,8 +111,7 @@ function App() {
         setResponseTimes((prevResponseTimes) => [...prevResponseTimes, data.responseTime]);
 
         // Limit the responseTimes array to the last 50 entries
-        if (responseTimes.length > 50) {
-          // Use the state value directly here
+        if (prevResponseTimes.length > 50) {
           setResponseTimes((prevResponseTimes) => prevResponseTimes.slice(-50));
         }
 
@@ -124,14 +123,6 @@ function App() {
         const costForLastRequest =
           data.totalRecords * calculateDataSizePerRecordInMB() * selectedCostValue;
         setCumulativeCost((prevCumulativeCost) => prevCumulativeCost + costForLastRequest);
-
-        // Calculate chartData here and set it
-        const newChartData = responseTimes.map((time, idx) => ({
-          interval: idx + 1,
-          responseTime: time,
-          cumulativeCost: cumulativeCost - (idx === 0 ? 0 : newChartData[idx - 1].cumulativeCost),
-        }));
-        setChartData(newChartData);
       } catch (error) {
         console.log('Error fetching data -', error);
       }
@@ -142,20 +133,22 @@ function App() {
 
     // Cleanup the interval on component unmount
     return () => clearInterval(interval);
-  }, [selectedCostValue, responseTimes, cumulativeCost]); // Include selectedCostValue, responseTimes, and cumulativeCost in the dependency array
+  }, [selectedCostValue]);
+
+  useEffect(() => {
+    // Calculate chartData based on the latest responseTimes and cumulativeCost
+    const newChartData = responseTimes.map((time, idx) => ({
+      interval: idx + 1,
+      responseTime: time,
+      cumulativeCost: cumulativeCost - (idx === 0 ? 0 : newChartData[idx - 1].cumulativeCost),
+    }));
+    setChartData(newChartData);
+  }, [responseTimes, cumulativeCost]);
 
   const calculateDataSizePerRecordInMB = () => {
     // Replace this with your actual data size calculation logic
-    // For example, you can estimate the average data size per record in MB
-    // If you have the actual data size from the server, you can use it directly.
     return 0.1; // Assuming each record is 0.1 MB for illustration purposes
   };
-
-  // Calculate the cost for the last request display
-  const costForLastRequestDisplay =
-    responseTimes.length > 0
-      ? cumulativeCost - (responseTimes.length === 1 ? 0 : cumulativeCost - responseTimes[responseTimes.length - 2])
-      : 0;
       
   return (
     <div className="container">
