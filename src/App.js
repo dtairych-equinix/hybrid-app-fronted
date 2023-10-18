@@ -279,11 +279,13 @@ function App() {
 
     setChartData((prevChartData) => {
       const newEntry = {
-          interval: currentInterval,
-          responseTime: data.responseTime,
-          cumulativeCost: newCumulativeCost
-      };
-      setCurrentInterval(prevInterval => prevInterval + 1); // Increment the interval
+        interval: currentInterval,
+        responseTime: data.responseTime,
+        cumulativeCost: prevChartData.length === 0 
+            ? costForLastRequest 
+            : (prevChartData[prevChartData.length - 1].cumulativeCost + costForLastRequest)
+    };
+    setCurrentInterval(prevInterval => prevInterval + 1);
       return [...prevChartData, newEntry].slice(-50);
   });
 
