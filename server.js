@@ -13,6 +13,28 @@ app.use(cors({ origin }));
 
 app.use(express.static(path.join(__dirname, 'build')));
 
+// app.use(express.json());
+
+// let selectedCostKey = 'Internet'; // Default cost factor key
+app.get('/get-cost-factor', (req, res) => {
+    // Always send the current selected cost key and its value in the response
+    res.json({ selectedCostKey, selectedCostValue });
+  });
+
+// Add a new route for updating the cost factor
+app.post('/update-cost-factor', (req, res) => {
+    const { costFactorKey } = req.body;
+  
+    // Check if the costFactorKey is valid and update it
+    if (costFactors[costFactorKey]) {
+      selectedCostKey = costFactorKey;
+      res.status(200).json({ message: 'Cost factor updated successfully.' });
+    } else {
+      res.status(400).json({ message: 'Invalid cost factor key.' });
+    }
+  });
+  
+
 app.get('/poll', async (req, res) => {
     try {
         const response = await axios.get('http://database.techtalk.com:8080/poll');

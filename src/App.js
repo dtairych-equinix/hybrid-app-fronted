@@ -7,13 +7,19 @@ function App() {
   const [responseTimes, setResponseTimes] = useState([]);
   const [totalRecords, setTotalRecords] = useState(0);
   const [cumulativeDataSize, setCumulativeDataSize] = useState(0);
-
-  // const apiUrl = process.env.REACT_APP_API_URL;
-  // const apiPort = process.env.REACT_APP_API_PORT;
+  // const [costFactor, setCostFactor] = useState(1); // Initial factor value
+  const [selectedCostKey, setSelectedCostKey] = useState('Internet');
+  const [selectedCostValue, setSelectedCostValue] = useState(1.0);
+  const [cumulativeCost, setCumulativeCost] = useState(0);
 
   useEffect(() => {
     const pollServer = async () => {
       try {
+        const costResponse = await axios.get('http://20.160.160.36:4000/get-cost-factor');
+        const { selectedCostKey, selectedCostValue } = costResponse.data;
+        setSelectedCostKey(selectedCostKey);
+        setSelectedCostValue(selectedCostValue);
+
         const response = await axios.get(`http://20.160.160.36:4000/poll`);
         const data = response.data;
 
@@ -31,17 +37,20 @@ function App() {
         // Calculate the cumulative data size in MB and update the state
         const dataSizeInMB = data.totalRecords * calculateDataSizePerRecordInMB();
         setCumulativeDataSize((prevCumulativeDataSize) => prevCumulativeDataSize + dataSizeInMB);
+        const costForLastRequest = data.totalRecords * calculateDataSizePerRecordInMB() * costFactor;
+        setCumulativeCost((prevCumulativeCost) => prevCumulativeCost + costForLastRequest);
+
       } catch (error) {
         console.log('Error fetching data -', error);
       }
     };
-
+    
     // Poll the server every 5 seconds and update the responseTimes state
     const interval = setInterval(pollServer, 5000);
 
     // Cleanup the interval on component unmount
     return () => clearInterval(interval);
-  }, [responseTimes]);
+  },[responseTimes, totalRecords, cumulativeDataSize, selectedCostValue, selectedCostKey]);
 
   const calculateDataSizePerRecordInMB = () => {
     // Replace this with your actual data size calculation logic
@@ -50,7 +59,16 @@ function App() {
     return 0.1; // Assuming each record is 0.1 MB for illustration purposes
   };
 
-  const chartData = responseTimes.map((time, idx) => ({ interval: idx + 1, responseTime: time }));
+  // const costFactor = costFactors[selectedCostKey] || 1.0;
+
+  // const chartData = responseTimes.map((time, idx) => ({ interval: idx + 1, responseTime: time }));
+  const chartData = responseTimes.map((time, idx) => ({
+    interval: idx + 1,
+    responseTime: time,
+    cumulativeCost: cumulativeCost - (idx === 0 ? 0 : chartData[idx - 1].cumulativeCost),
+  }));
+
+  const costForLastRequestDisplay = responseTimes.length > 0 ? cumulativeCost - chartData[chartData.length - 2]?.cumulativeCost : 0;
 
   return (
     <div className="container">
@@ -66,6 +84,19 @@ function App() {
       <p>Total Records: {totalRecords}</p>
       <p>Last Response Time: {responseTimes.length > 0 ? responseTimes[responseTimes.length - 1] : 0} seconds</p>
       <h3>Cumulative Data Size Requested: {cumulativeDataSize.toFixed(2)} MB</h3>
+
+      <p>Current Cost Factor Key: {selectedCostKey}</p>
+      <p>Current Cost Factor Value: {selectedCostValue}</p>
+      <p>Cost for Last Request: {costForLastRequestDisplay.toFixed(2)}</p>
+      <LineChart width={600} height={300} data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="interval" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        <Line type="monotone" dataKey="cumulativeCost" name="Cumulative Cost" stroke="#82ca9d" />
+      </LineChart>
+
     </div>
   );
 }
