@@ -96,7 +96,7 @@ function App() {
     const pollServer = async () => {
       try {
         // Fetch the current cost factor from the server with every poll
-        const costFactorResponse = await axios.get('/get-cost-factor');
+        const costFactorResponse = await axios.get('http://20.160.160.36:4000/get-cost-factor');
         const { selectedCostKey, selectedCostValue } = costFactorResponse.data;
         setSelectedCostKey(selectedCostKey);
         setSelectedCostValue(selectedCostValue);
