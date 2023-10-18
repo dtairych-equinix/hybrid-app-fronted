@@ -273,7 +273,7 @@ function App() {
         console.log("Data Size in MB:", dataSizeInMB);
     console.log("Cost for Last Request:", costForLastRequest);
     console.log("Previous Cumulative Cost:", cumulativeCost);
-    console.log("New Cumulative Cost:", newCumulativeCost);
+    // console.log("New Cumulative Cost:", newCumulativeCost);
 
     setChartData((prevChartData) => {
       const newEntry = {
