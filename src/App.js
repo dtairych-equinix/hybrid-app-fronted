@@ -262,12 +262,15 @@ function App() {
   
         const dataSizeInMB = data.totalRecords * calculateDataSizePerRecordInMB();
         setCumulativeDataSize((prevCumulativeDataSize) => prevCumulativeDataSize + dataSizeInMB);
+        
   
         const costForLastRequest = dataSizeInMB * selectedCostValue;
-        setCumulativeCost((prevCumulativeCost) => prevCumulativeCost + costForLastRequest);
+        // setCumulativeCost((prevCumulativeCost) => prevCumulativeCost + costForLastRequest);
+        const newCumulativeCost = cumulativeCost + costForLastRequest;
+        setCumulativeCost(newCumulativeCost);
 
         setChartData((prevChartData) => {
-          const newCumulativeCost = cumulativeCost + costForLastRequest;
+          // const newCumulativeCost = cumulativeCost + costForLastRequest;
           const newEntry = {
               interval: prevChartData.length + 1,
               responseTime: data.responseTime,
