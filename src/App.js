@@ -121,8 +121,17 @@ function App() {
   
         // Calculate the cost for the last request
         const costForLastRequest =
-          data.totalRecords * calculateDataSizePerRecordInMB() * selectedCostValue;
-        setCumulativeCost((prevCumulativeCost) => prevCumulativeCost + costForLastRequest);
+        data.totalRecords * calculateDataSizePerRecordInMB() * selectedCostValue;
+      setCumulativeCost((prevCumulativeCost) => prevCumulativeCost + costForLastRequest);
+
+      // Calculate costForLastRequestDisplay here
+      const costForLastRequestDisplay =
+        responseTimes.length > 0
+          ? cumulativeCost - (responseTimes.length === 1 ? 0 : cumulativeCost - responseTimes[responseTimes.length - 2])
+          : 0;
+      
+      // Set costForLastRequestDisplay in state
+      setCostForLastRequestDisplay(costForLastRequestDisplay);
       } catch (error) {
         console.log('Error fetching data -', error);
       }
@@ -133,7 +142,9 @@ function App() {
   
     // Cleanup the interval on component unmount
     return () => clearInterval(interval);
-  }, [selectedCostValue]);
+  }, [selectedCostValue, cumulativeCost]);
+
+  const [costForLastRequestDisplay, setCostForLastRequestDisplay] = useState(0);
   
   useEffect(() => {
     // Calculate cumulativeCost before calculating newChartData
