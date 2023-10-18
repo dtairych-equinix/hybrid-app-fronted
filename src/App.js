@@ -267,13 +267,14 @@ function App() {
         setCumulativeCost((prevCumulativeCost) => prevCumulativeCost + costForLastRequest);
 
         setChartData((prevChartData) => {
+          const newCumulativeCost = cumulativeCost + costForLastRequest;
           const newEntry = {
               interval: prevChartData.length + 1,
               responseTime: data.responseTime,
-              cumulativeCost: prevCumulativeCost + costForLastRequest
+              cumulativeCost: newCumulativeCost
           };
           return [...prevChartData, newEntry].slice(-50);
-        });
+      });
 
         setCostForLastRequestDisplay(costForLastRequest);
       } catch (error) {
