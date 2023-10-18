@@ -111,10 +111,9 @@ function App() {
         setResponseTimes((prevResponseTimes) => [...prevResponseTimes, data.responseTime]);
 
         // Limit the responseTimes array to the last 50 entries
-        if (responseTimes.length > 50) {
+        if (prevResponseTimes.length > 50) {
           setResponseTimes((prevResponseTimes) => prevResponseTimes.slice(-50));
         }
-        
 
         // Calculate the cumulative data size in MB and update the state
         const dataSizeInMB = data.totalRecords * calculateDataSizePerRecordInMB();
