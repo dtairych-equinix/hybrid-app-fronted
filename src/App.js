@@ -37,7 +37,7 @@ function App() {
         // Calculate the cumulative data size in MB and update the state
         const dataSizeInMB = data.totalRecords * calculateDataSizePerRecordInMB();
         setCumulativeDataSize((prevCumulativeDataSize) => prevCumulativeDataSize + dataSizeInMB);
-        const costForLastRequest = data.totalRecords * calculateDataSizePerRecordInMB() * costFactor;
+        const costForLastRequest = data.totalRecords * calculateDataSizePerRecordInMB() * selectedCostValue;
         setCumulativeCost((prevCumulativeCost) => prevCumulativeCost + costForLastRequest);
 
       } catch (error) {
