@@ -8,7 +8,7 @@ const PORT = 4000;
 
 const origin = process.argv[2];
 
-app.use(cors({ origin }));
+app.use(cors( "0.0.0.0" ));
 
 // app.use(cors({ origin: 'http://20.160.160.36:3000' })); // Allow requests from React app
 
