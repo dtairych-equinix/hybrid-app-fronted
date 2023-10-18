@@ -111,8 +111,8 @@ function App() {
         setResponseTimes((prevResponseTimes) => [...prevResponseTimes, data.responseTime]);
 
         // Limit the responseTimes array to the last 50 entries
-        if (prevResponseTimes.length > 50) {
-          // Use the previous state value here
+        if (responseTimes.length > 50) {
+          // Use the state value directly here
           setResponseTimes((prevResponseTimes) => prevResponseTimes.slice(-50));
         }
 
@@ -126,10 +126,10 @@ function App() {
         setCumulativeCost((prevCumulativeCost) => prevCumulativeCost + costForLastRequest);
 
         // Calculate chartData here and set it
-        const newChartData = prevResponseTimes.map((time, idx) => ({
+        const newChartData = responseTimes.map((time, idx) => ({
           interval: idx + 1,
           responseTime: time,
-          cumulativeCost: prevCumulativeCost - (idx === 0 ? 0 : newChartData[idx - 1].cumulativeCost),
+          cumulativeCost: cumulativeCost - (idx === 0 ? 0 : newChartData[idx - 1].cumulativeCost),
         }));
         setChartData(newChartData);
       } catch (error) {
@@ -142,7 +142,7 @@ function App() {
 
     // Cleanup the interval on component unmount
     return () => clearInterval(interval);
-  }, [selectedCostValue]); // Include selectedCostValue in the dependency array
+  }, [selectedCostValue, responseTimes, cumulativeCost]); // Include selectedCostValue, responseTimes, and cumulativeCost in the dependency array
 
   const calculateDataSizePerRecordInMB = () => {
     // Replace this with your actual data size calculation logic
@@ -150,6 +150,12 @@ function App() {
     // If you have the actual data size from the server, you can use it directly.
     return 0.1; // Assuming each record is 0.1 MB for illustration purposes
   };
+
+  // Calculate the cost for the last request display
+  const costForLastRequestDisplay =
+    responseTimes.length > 0
+      ? cumulativeCost - (responseTimes.length === 1 ? 0 : cumulativeCost - responseTimes[responseTimes.length - 2])
+      : 0;
       
   return (
     <div className="container">
