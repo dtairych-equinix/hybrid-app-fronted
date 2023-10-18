@@ -147,20 +147,27 @@ function App() {
   const [costForLastRequestDisplay, setCostForLastRequestDisplay] = useState(0);
   
   useEffect(() => {
-    // Calculate cumulativeCost before calculating newChartData
-    const costForLastRequestDisplay =
-      responseTimes.length > 0
-        ? cumulativeCost - (responseTimes.length === 1 ? 0 : cumulativeCost - responseTimes[responseTimes.length - 2])
-        : 0;
-  
-    // Calculate newChartData based on the latest responseTimes and cumulativeCost
-    const newChartData = responseTimes.map((time, idx) => ({
+    // Limit the responseTimes array to the last 50 entries
+    const latestResponseTimes = responseTimes.slice(-50);
+
+    // Calculate newChartData based on the latestResponseTimes without cumulativeCost
+    let preliminaryChartData = latestResponseTimes.map((time, idx) => ({
       interval: idx + 1,
-      responseTime: time,
-      cumulativeCost: cumulativeCost - (idx === 0 ? 0 : newChartData[idx - 1].cumulativeCost),
+      responseTime: time
     }));
-    setChartData(newChartData);
-  }, [responseTimes, cumulativeCost]);
+
+    // Calculate cumulativeCost for each entry
+    for (let idx = 0; idx < preliminaryChartData.length; idx++) {
+      if (idx === 0) {
+        preliminaryChartData[idx].cumulativeCost = cumulativeCost;
+      } else {
+        preliminaryChartData[idx].cumulativeCost = preliminaryChartData[idx - 1].cumulativeCost - cumulativeCost;
+      }
+    }
+
+    setChartData(preliminaryChartData);
+}, [responseTimes, cumulativeCost]);
+
 
   const calculateDataSizePerRecordInMB = () => {
     // Replace this with your actual data size calculation logic
