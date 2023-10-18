@@ -19,7 +19,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "concurrently \"HOST=$ORIGIN PORT=3000 API_URL=$API_URL:4000 react-scripts start\" \"node server.js $ORIGIN:4000\"",
+    "start": "concurrently \"HOST=$ORIGIN PORT=3000 REACT_APP_API_URL=$API_URL:4000 react-scripts start\" \"node server.js $ORIGIN:4000\"",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
