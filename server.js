@@ -12,12 +12,25 @@ app.use(cors({ origin }));
 // app.use(cors({ origin: 'http://20.160.160.36:3000' })); // Allow requests from React app
 
 app.use(express.static(path.join(__dirname, 'build')));
+app.use(express.json()); 
+
+let selectedCostKey = 'Internet';
+const costFactorsPath = path.join(__dirname, 'costFactors.json');
+let costFactors = {};
+
+
+try {
+    const costFactorsJson = fs.readFileSync(costFactorsPath, 'utf8');
+    costFactors = JSON.parse(costFactorsJson);
+  } catch (error) {
+    console.error('Error reading cost factors:', error);
+  }
 
 // app.use(express.json());
 
 // let selectedCostKey = 'Internet'; // Default cost factor key
 app.get('/get-cost-factor', (req, res) => {
-    // Always send the current selected cost key and its value in the response
+    const selectedCostValue = costFactors[selectedCostKey] || 1.0;
     res.json({ selectedCostKey, selectedCostValue });
   });
 
@@ -26,7 +39,7 @@ app.post('/update-cost-factor', (req, res) => {
     const { costFactorKey } = req.body;
   
     // Check if the costFactorKey is valid and update it
-    if (costFactors[costFactorKey]) {
+    if (costFactors[costFactorKey] !== undefined) {
       selectedCostKey = costFactorKey;
       res.status(200).json({ message: 'Cost factor updated successfully.' });
     } else {
