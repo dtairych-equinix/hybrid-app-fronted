@@ -244,6 +244,7 @@ function App() {
   const [cumulativeCost, setCumulativeCost] = useState(0);
   const [chartData, setChartData] = useState([]);
   const [costForLastRequestDisplay, setCostForLastRequestDisplay] = useState(0);
+  const [currentInterval, setCurrentInterval] = useState(0);
 
   useEffect(() => {
     const pollServer = async () => {
@@ -254,6 +255,7 @@ function App() {
         setSelectedCostValue(selectedCostValue);
   
         const response = await axios.get(`http://20.160.160.36:4000/poll`);
+        setCurrentInterval(prevInterval => prevInterval + 1);
         const data = response.data;
   
         setTotalRecords(data.totalRecords);
@@ -277,10 +279,12 @@ function App() {
 
     setChartData((prevChartData) => {
       const newEntry = {
-          interval: prevChartData.length + 1,
-          responseTime: data.responseTime,
-          cumulativeCost: prevChartData.length === 0 ? costForLastRequest : (prevChartData[prevChartData.length - 1].cumulativeCost + costForLastRequest)
-      };
+        interval: currentInterval,
+        responseTime: data.responseTime,
+        cumulativeCost: prevChartData.length === 0 
+            ? costForLastRequest 
+            : (prevChartData[prevChartData.length - 1].cumulativeCost + costForLastRequest)
+    };
       return [...prevChartData, newEntry].slice(-50);
   });
 
