@@ -148,8 +148,9 @@ function App() {
   
   useEffect(() => {
     const latestResponseTimes = responseTimes.slice(-50);
-    
-    let accumulatedCost = 0; // This will be used to accumulate the cost over all response times
+
+    // Accumulate the cost from the state and distribute it to the data points
+    let accumulatedCost = cumulativeCost - latestResponseTimes.reduce((acc, time) => acc + time * calculateDataSizePerRecordInMB() * selectedCostValue, 0);
 
     const newChartData = latestResponseTimes.map((time, idx) => {
         const costForThisRequest = time * calculateDataSizePerRecordInMB() * selectedCostValue;
@@ -163,7 +164,8 @@ function App() {
     });
 
     setChartData(newChartData);
-}, [responseTimes, selectedCostValue]);
+}, [responseTimes, cumulativeCost, selectedCostValue]);
+
 
 
 
