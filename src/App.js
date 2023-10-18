@@ -22,7 +22,7 @@ function App() {
   const [costForLastRequestDisplay, setCostForLastRequestDisplay] = useState(0);
   const [currentInterval, setCurrentInterval] = useState(1);
 
-  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:4000';
+  const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:4000';  // default to localhost if not provided
 
   useEffect(() => {
     const pollServer = async () => {
