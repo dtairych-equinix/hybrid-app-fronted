@@ -122,7 +122,7 @@ function App() {
         // Calculate the cost for the last request
         const costForLastRequest =
         data.totalRecords * calculateDataSizePerRecordInMB() * selectedCostValue;
-      setCumulativeCost((prevCumulativeCost) => prevCumulativeCost + costForLastRequest);
+        setCumulativeCost((prevCumulativeCost) => prevCumulativeCost + costForLastRequest);
 
       // Calculate costForLastRequestDisplay here
       const costForLastRequestDisplay =
@@ -147,26 +147,24 @@ function App() {
   const [costForLastRequestDisplay, setCostForLastRequestDisplay] = useState(0);
   
   useEffect(() => {
-    // Limit the responseTimes array to the last 50 entries
     const latestResponseTimes = responseTimes.slice(-50);
+    
+    let accumulatedCost = 0; // This will be used to accumulate the cost over all response times
 
-    // Calculate newChartData based on the latestResponseTimes without cumulativeCost
-    let preliminaryChartData = latestResponseTimes.map((time, idx) => ({
-      interval: idx + 1,
-      responseTime: time
-    }));
+    const newChartData = latestResponseTimes.map((time, idx) => {
+        const costForThisRequest = time * calculateDataSizePerRecordInMB() * selectedCostValue;
+        accumulatedCost += costForThisRequest;
 
-    // Calculate cumulativeCost for each entry
-    for (let idx = 0; idx < preliminaryChartData.length; idx++) {
-      if (idx === 0) {
-        preliminaryChartData[idx].cumulativeCost = cumulativeCost;
-      } else {
-        preliminaryChartData[idx].cumulativeCost = preliminaryChartData[idx - 1].cumulativeCost - cumulativeCost;
-      }
-    }
+        return {
+            interval: idx + 1,
+            responseTime: time,
+            cumulativeCost: accumulatedCost
+        };
+    });
 
-    setChartData(preliminaryChartData);
-}, [responseTimes, cumulativeCost]);
+    setChartData(newChartData);
+}, [responseTimes, selectedCostValue]);
+
 
 
   const calculateDataSizePerRecordInMB = () => {
