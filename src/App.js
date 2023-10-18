@@ -266,23 +266,23 @@ function App() {
   
         const costForLastRequest = dataSizeInMB * selectedCostValue;
         // setCumulativeCost((prevCumulativeCost) => prevCumulativeCost + costForLastRequest);
-        const newCumulativeCost = cumulativeCost + costForLastRequest;
-        setCumulativeCost(newCumulativeCost);
+        // const newCumulativeCost = cumulativeCost + costForLastRequest;
+        // setCumulativeCost(newCumulativeCost);
+        setCumulativeCost(prevCumulativeCost => prevCumulativeCost + costForLastRequest);
 
         console.log("Data Size in MB:", dataSizeInMB);
     console.log("Cost for Last Request:", costForLastRequest);
     console.log("Previous Cumulative Cost:", cumulativeCost);
     console.log("New Cumulative Cost:", newCumulativeCost);
 
-        setChartData((prevChartData) => {
-          // const newCumulativeCost = cumulativeCost + costForLastRequest;
-          const newEntry = {
-              interval: prevChartData.length + 1,
-              responseTime: data.responseTime,
-              cumulativeCost: newCumulativeCost
-          };
-          return [...prevChartData, newEntry].slice(-50);
-      });
+    setChartData((prevChartData) => {
+      const newEntry = {
+          interval: prevChartData.length + 1,
+          responseTime: data.responseTime,
+          cumulativeCost: prevChartData.length === 0 ? costForLastRequest : (prevChartData[prevChartData.length - 1].cumulativeCost + costForLastRequest)
+      };
+      return [...prevChartData, newEntry].slice(-50);
+  });
 
         setCostForLastRequestDisplay(costForLastRequest);
       } catch (error) {
