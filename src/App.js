@@ -31,6 +31,7 @@ function App() {
         const { selectedCostKey, selectedCostValue } = costFactorResponse.data;
         setSelectedCostKey(selectedCostKey);
         setSelectedCostValue(selectedCostValue);
+        console.log("Selected Cost Value: ", selectedCostValue)
   
         const response = await axios.get(`${apiUrl}/poll`);
         // setCurrentInterval(prevInterval => prevInterval + 1);

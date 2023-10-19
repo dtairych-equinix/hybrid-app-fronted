@@ -42,7 +42,13 @@ app.post('/update-cost-factor', (req, res) => {
     // Check if the costFactorKey is valid and update it
     if (costFactors[costFactorKey] !== undefined) {
       selectedCostKey = costFactorKey;
-      res.status(200).json({ message: 'Cost factor updated successfully.' });
+      const costFactorValue = costFactors[costFactorKey];
+      
+      res.status(200).json({
+        message: 'Cost factor updated successfully.',
+        costFactorKey: selectedCostKey,
+        costFactorValue: costFactorValue
+      });
     } else {
       res.status(400).json({ message: 'Invalid cost factor key.' });
     }
