@@ -39,7 +39,7 @@ function App() {
   
         setTotalRecords(data.totalRecords);
   
-        setResponseTimes((prevResponseTimes) => [...prevResponseTimes, data.responseTime].slice(-50));
+        setResponseTimes((prevResponseTimes) => [...prevResponseTimes, data.responseTime].slice(-300));
   
         const dataSizeInMB = data.totalRecords * calculateDataSizePerRecordInMB();
         setCumulativeDataSize((prevCumulativeDataSize) => prevCumulativeDataSize + dataSizeInMB);
@@ -65,7 +65,7 @@ function App() {
                 : (prevChartData[prevChartData.length - 1].cumulativeCost + costForLastRequest)
           };  
           setCurrentInterval(prevInterval => prevInterval + 1);
-          return [...prevChartData, newEntry].slice(-50);
+          return [...prevChartData, newEntry].slice(-300);
         });
 
         setCostForLastRequestDisplay(costForLastRequest);
@@ -74,7 +74,7 @@ function App() {
       }
     };
   
-    const interval = setInterval(pollServer, 5000);
+    const interval = setInterval(pollServer, 10000);
     return () => clearInterval(interval);
   }, []); 
 
@@ -85,7 +85,7 @@ function App() {
   return (
     <div className="container">
       <h1>Database Response Time Over Time</h1>
-      <LineChart width={600} height={300} data={chartData}>
+      <LineChart width={1500} height={400} data={chartData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="interval" />
         <YAxis />
@@ -100,7 +100,7 @@ function App() {
       <p>Current Cost Factor Key: {selectedCostKey}</p>
       <p>Current Cost Factor Value: {selectedCostValue}</p>
       <p>Cost for Last Request: {costForLastRequestDisplay.toFixed(2)}</p>
-      <LineChart width={600} height={300} data={chartData}>
+      <LineChart width={1500} height={400} data={chartData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="interval" />
         <YAxis />
