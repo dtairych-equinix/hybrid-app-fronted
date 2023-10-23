@@ -8,6 +8,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  Dot,
 } from 'recharts';
 import './App.css';
 
@@ -48,6 +49,8 @@ function App() {
         setCumulativeCost(prevCumulativeCost => prevCumulativeCost + costForLastRequest);
   
         setChartData((prevChartData) => {
+          // const newCostFactorChanges = [...costFactorChanges];
+
           const interval = currentInterval + 1;
           const newCumulativeCost = prevChartData.length === 0
             ? costForLastRequest
@@ -56,6 +59,10 @@ function App() {
           let newCostFactorChanges = [...costFactorChanges];
           if (costFactorChanges.length === 0 || selectedCostValue !== costFactorChanges[costFactorChanges.length - 1].costFactor) {
             newCostFactorChanges.push({ interval: currentInterval, costFactor: selectedCostValue });
+          }
+
+          if (costFactorChanges.length !== newCostFactorChanges.length) {
+            setCostFactorChanges(newCostFactorChanges);
           }
   
           const projectedCosts = newCostFactorChanges.map((change, index) => {
@@ -77,9 +84,7 @@ function App() {
           return [...prevChartData, newEntry].slice(-300);
         });
   
-        if (costFactorChanges.length !== newCostFactorChanges.length) {
-          setCostFactorChanges(newCostFactorChanges);
-        }
+        
   
         setCurrentInterval(prevInterval => prevInterval + 1);
         setCostForLastRequestDisplay(costForLastRequest);
