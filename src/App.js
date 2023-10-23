@@ -103,7 +103,7 @@ function App() {
   };
 
   const getLineColor = (index) => {
-    const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#8884d8']; // Add more colors as needed
+    const colors = ['#ff6b6b', '#ffc658']; // Add more colors as needed
     return colors[index % colors.length];
   };
 
