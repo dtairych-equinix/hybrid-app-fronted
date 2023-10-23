@@ -38,7 +38,7 @@ function App() {
         if (costFactorChanges.length === 0 || selectedCostValue !== costFactorChanges[costFactorChanges.length - 1].costFactor) {
           setCostFactorChanges(prev => [...prev, { interval: currentInterval, costFactor: selectedCostValue }]);
         }
-        
+
         const response = await axios.get(`${apiUrl}/poll`);
         const data = response.data;
 
@@ -52,21 +52,24 @@ function App() {
         setCumulativeCost(prevCumulativeCost => prevCumulativeCost + costForLastRequest);
 
         setChartData((prevChartData) => {
+          const interval = currentInterval + 1;
+          const projectedCosts = costFactorChanges.map((change, index) => {
+            if (interval < change.interval) {
+              return 0;
+            } else {
+              const previousInterval = change.interval === 0 ? 0 : change.interval - 1;
+              const previousData = prevChartData.find(d => d.interval === previousInterval) || { projectedCosts: Array(costFactorChanges.length).fill(0) };
+              return previousData.projectedCosts[index] + (dataSizeInMB * change.costFactor);
+            }
+          });
+
           const newEntry = {
-            interval: currentInterval + 1,
+            interval: interval,
             responseTime: data.responseTime,
             cumulativeCost: prevChartData.length === 0 
                 ? costForLastRequest 
                 : (prevChartData[prevChartData.length - 1].cumulativeCost + costForLastRequest),
-            projectedCosts: costFactorChanges.map((change, index) => {
-              if (newEntry.interval < change.interval) {
-                return 0;
-              } else {
-                const previousInterval = change.interval === 0 ? 0 : change.interval - 1;
-                const previousData = prevChartData.find(d => d.interval === previousInterval) || { projectedCosts: Array(costFactorChanges.length).fill(0) };
-                return previousData.projectedCosts[index] + (dataSizeInMB * change.costFactor);
-              }
-            })
+            projectedCosts: projectedCosts
           };
 
           return [...prevChartData, newEntry].slice(-300);
