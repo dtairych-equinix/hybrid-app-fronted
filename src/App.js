@@ -67,6 +67,14 @@ function App() {
             : prevChartData[prevChartData.length - 1].cumulativeCost + costForLastRequest;
   
           const projectedCosts = costFactorChanges.map((change, index) => {
+
+            console.log('Interval:', interval);
+            console.log('Change:', change);
+            console.log('index:', index);
+            // console.log('Previous Data:', previousData);
+            // console.log('Data Size in MB:', dataSizeInMB);
+            // console.log('Projected Cost Calculation:', previousData.projectedCosts[index] + dataSizeInMB * change.costFactor);
+            
             if (interval < change.interval) {
               return prevChartData.length === 0 ? 0 : prevChartData[prevChartData.length - 1].projectedCosts[index];
             } else if (interval === change.interval) {
