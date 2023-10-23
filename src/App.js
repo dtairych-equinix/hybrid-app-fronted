@@ -105,7 +105,7 @@ function App() {
 
   return (
     <div className="container">
-      <h1>Database Response Time Over Time</h1>
+      <h1>Multicloud Application Performance over Time</h1>
       <LineChart width={1200} height={300} data={chartData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="interval" />
@@ -114,13 +114,17 @@ function App() {
         <Legend />
         <Line type="monotone" dataKey="responseTime" name="Response Time (s)" stroke="#8884d8" strokeWidth={3} />
       </LineChart>
-      <p>Total Records: {totalRecords}</p>
-      <p>Last Response Time: {responseTimes.length > 0 ? responseTimes[responseTimes.length - 1] : 0} seconds</p>
+      <p>Total Amount of Data: {totalRecords}</p>
+      
+      {/* <p>Last Response Time: {responseTimes.length > 0 ? parseFloat(responseTimes[responseTimes.length - 1].toFixed(2)) : 0} seconds</p> */}
       <h3>Cumulative Data Size Requested: {cumulativeDataSize.toFixed(2)} MB</h3>
+      <br></br>
+      <h1>Total Data Egress Costs over Time</h1>
+      
+      {/* <p>Relative Cost Factor: {selectedCostValue}</p> */}
+      {/* <p>Cost for Last Request: {costForLastRequestDisplay.toFixed(2)}</p> */}
 
-      <p>Current Cost Factor Key: {selectedCostKey}</p>
-      <p>Current Cost Factor Value: {selectedCostValue}</p>
-      <p>Cost for Last Request: {costForLastRequestDisplay.toFixed(2)}</p>
+      
       <LineChart width={1200} height={300} data={chartData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="interval" />
@@ -140,6 +144,7 @@ function App() {
           />
         ))}
       </LineChart>
+      <p>Current Transport Mechanism: {selectedCostKey}</p>
     </div>
   );
 }
