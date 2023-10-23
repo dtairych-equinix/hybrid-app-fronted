@@ -20,7 +20,7 @@ function App() {
   const [cumulativeCost, setCumulativeCost] = useState(0);
   const [chartData, setChartData] = useState([]);
   const [costForLastRequestDisplay, setCostForLastRequestDisplay] = useState(0);
-  const [currentInterval, setCurrentInterval] = useState(1);
+  const [currentInterval, setCurrentInterval] = useState(0);
   const [costFactorChanges, setCostFactorChanges] = useState([]);
 
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:4000';  // default to localhost if not provided
@@ -53,27 +53,35 @@ function App() {
 
         setChartData((prevChartData) => {
           const interval = currentInterval + 1;
+        
+          const newCumulativeCost = prevChartData.length === 0
+            ? costForLastRequest
+            : prevChartData[prevChartData.length - 1].cumulativeCost + costForLastRequest;
+        
           const projectedCosts = costFactorChanges.map((change, index) => {
             if (interval < change.interval) {
-              return 0;
+              // If the current interval is before the change interval, use the previous cumulative cost
+              return prevChartData.length === 0 ? 0 : prevChartData[prevChartData.length - 1].projectedCosts[index];
+            } else if (interval === change.interval) {
+              // If the current interval is exactly at the change interval, start from the cumulative cost at this point
+              return newCumulativeCost;
             } else {
-              const previousInterval = change.interval === 0 ? 0 : change.interval - 1;
-              const previousData = prevChartData.find(d => d.interval === previousInterval) || { projectedCosts: Array(costFactorChanges.length).fill(0) };
-              return previousData.projectedCosts[index] + (dataSizeInMB * change.costFactor);
+              // If the current interval is after the change interval, add the cost for the last request using the old cost factor
+              const previousData = prevChartData.find(d => d.interval === interval - 1) || { projectedCosts: Array(costFactorChanges.length).fill(0) };
+              return previousData.projectedCosts[index] + dataSizeInMB * change.costFactor;
             }
           });
-
+        
           const newEntry = {
             interval: interval,
             responseTime: data.responseTime,
-            cumulativeCost: prevChartData.length === 0 
-                ? costForLastRequest 
-                : (prevChartData[prevChartData.length - 1].cumulativeCost + costForLastRequest),
+            cumulativeCost: newCumulativeCost,
             projectedCosts: projectedCosts
           };
-
+        
           return [...prevChartData, newEntry].slice(-300);
         });
+        
 
         setCurrentInterval(prevInterval => prevInterval + 1);
         setCostForLastRequestDisplay(costForLastRequest);
@@ -104,7 +112,7 @@ function App() {
         <YAxis />
         <Tooltip />
         <Legend />
-        <Line type="monotone" dataKey="responseTime" name="Response Time (s)" stroke="#8884d8" />
+        <Line type="monotone" dataKey="responseTime" name="Response Time (s)" stroke="#8884d8" strokeWidth={3} />
       </LineChart>
       <p>Total Records: {totalRecords}</p>
       <p>Last Response Time: {responseTimes.length > 0 ? responseTimes[responseTimes.length - 1] : 0} seconds</p>
@@ -119,7 +127,7 @@ function App() {
         <YAxis />
         <Tooltip />
         <Legend />
-        <Line type="monotone" dataKey="cumulativeCost" name="Cumulative Cost" stroke="#82ca9d" />
+        <Line type="monotone" dataKey="cumulativeCost" name="Cumulative Cost" stroke="#82ca9d" strokeWidth={3} />
         {costFactorChanges.map((change, index) => (
           <Line 
             key={index}
@@ -127,6 +135,7 @@ function App() {
             dataKey={`projectedCosts[${index}]`} 
             name={`Projected Cost (Phase ${index + 1})`} 
             stroke={getLineColor(index)} 
+            strokeWidth={3}
             dot={false}
           />
         ))}
