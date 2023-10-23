@@ -35,18 +35,6 @@ function App() {
         setSelectedCostKey(selectedCostKey);
         setSelectedCostValue(selectedCostValue);
   
-        if (costFactorChanges.length === 0 || selectedCostValue !== costFactorChanges[costFactorChanges.length - 1].costFactor) {
-          setCostFactorChanges(prev => [...prev, { interval: currentInterval, costFactor: selectedCostValue }]);
-  
-          // Update projected costs for all previous intervals
-          setChartData(prevChartData => {
-            return prevChartData.map(dataPoint => {
-              const newProjectedCosts = [...dataPoint.projectedCosts, dataPoint.cumulativeCost];  // Copy cumulative cost to the new index
-              return { ...dataPoint, projectedCosts: newProjectedCosts };
-            });
-          });
-        }
-  
         const response = await axios.get(`${apiUrl}/poll`);
         const data = response.data;
   
@@ -61,26 +49,20 @@ function App() {
   
         setChartData((prevChartData) => {
           const interval = currentInterval + 1;
-  
           const newCumulativeCost = prevChartData.length === 0
             ? costForLastRequest
             : prevChartData[prevChartData.length - 1].cumulativeCost + costForLastRequest;
   
-          const projectedCosts = costFactorChanges.map((change, index) => {
-
-            console.log('Interval:', interval);
-            console.log('Change:', change);
-            console.log('index:', index);
-            // console.log('Previous Data:', previousData);
-            // console.log('Data Size in MB:', dataSizeInMB);
-            // console.log('Projected Cost Calculation:', previousData.projectedCosts[index] + dataSizeInMB * change.costFactor);
-            
+          let newCostFactorChanges = [...costFactorChanges];
+          if (costFactorChanges.length === 0 || selectedCostValue !== costFactorChanges[costFactorChanges.length - 1].costFactor) {
+            newCostFactorChanges.push({ interval: currentInterval, costFactor: selectedCostValue });
+          }
+  
+          const projectedCosts = newCostFactorChanges.map((change, index) => {
             if (interval < change.interval) {
               return prevChartData.length === 0 ? 0 : prevChartData[prevChartData.length - 1].projectedCosts[index];
-            } else if (interval === change.interval) {
-              return newCumulativeCost;
             } else {
-              const previousData = prevChartData.find(d => d.interval === interval - 1) || { projectedCosts: Array(costFactorChanges.length).fill(0) };
+              const previousData = prevChartData.find(d => d.interval === interval - 1) || { projectedCosts: Array(newCostFactorChanges.length).fill(0) };
               return previousData.projectedCosts[index] + dataSizeInMB * change.costFactor;
             }
           });
@@ -95,6 +77,10 @@ function App() {
           return [...prevChartData, newEntry].slice(-300);
         });
   
+        if (costFactorChanges.length !== newCostFactorChanges.length) {
+          setCostFactorChanges(newCostFactorChanges);
+        }
+  
         setCurrentInterval(prevInterval => prevInterval + 1);
         setCostForLastRequestDisplay(costForLastRequest);
       } catch (error) {
@@ -104,7 +90,7 @@ function App() {
   
     const interval = setInterval(pollServer, 10000);
     return () => clearInterval(interval);
-  }, [selectedCostValue, currentInterval, costFactorChanges, apiUrl]);
+  }, [selectedCostValue, currentInterval, costFactorChanges, apiUrl]);  
   
 
   const calculateDataSizePerRecordInMB = () => {
@@ -138,18 +124,22 @@ function App() {
       {/* <p>Cost for Last Request: {costForLastRequestDisplay.toFixed(2)}</p> */}
 
       
-      <LineChart width={1200} height={300} data={chartData}>
+      <LineChart width={1200} height={400} data={chartData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="interval" />
         <YAxis />
         <Tooltip />
         <Legend />
-        <Line type="monotone" dataKey="cumulativeCost" name="Cumulative Cost" stroke="#82ca9d" strokeWidth={3} />
+        <Line type="monotone" dataKey="cumulativeCost" name="Cumulative Cost" stroke="#82ca9d" strokeWidth={3}>
+          {costFactorChanges.map((change, index) => (
+            <Dot key={index} x={chartData.find(d => d.interval === change.interval)?.interval} stroke="red" strokeWidth={2} />
+          ))}
+        </Line>
         {costFactorChanges.map((change, index) => (
           <Line 
             key={index}
             type="monotone" 
-            dataKey={`projectedCosts[${index}]`} 
+            dataKey={d => d.interval >= change.interval ? `projectedCosts[${index}]` : null}
             name={`Projected Cost (Phase ${index + 1})`} 
             stroke={getLineColor(index)} 
             strokeWidth={3}
