@@ -109,7 +109,7 @@ function App() {
 
   return (
     <div className="container">
-      <h1>Multicloud Application Performance over Time</h1>
+      <h2>Multicloud Application Performance over Time</h2>
       <LineChart width={1200} height={300} data={chartData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="interval" />
@@ -123,7 +123,7 @@ function App() {
       {/* <p>Last Response Time: {responseTimes.length > 0 ? parseFloat(responseTimes[responseTimes.length - 1].toFixed(2)) : 0} seconds</p> */}
       <h3>Cumulative Data Size Requested: {cumulativeDataSize.toFixed(2)} MB</h3>
       <br></br>
-      <h1>Total Data Egress Costs over Time</h1>
+      <h2>Total Data Egress Costs over Time</h2>
       
       {/* <p>Relative Cost Factor: {selectedCostValue}</p> */}
       {/* <p>Cost for Last Request: {costForLastRequestDisplay.toFixed(2)}</p> */}
@@ -144,7 +144,7 @@ function App() {
           <Line 
             key={index}
             type="monotone" 
-            dataKey={d => d.interval >= change.interval ? `projectedCosts[${index}]` : null}
+            dataKey={d => d.interval >= change.interval ? d.projectedCosts[index] : null}
             name={`Projected Cost (Phase ${index + 1})`} 
             stroke={getLineColor(index)} 
             strokeWidth={3}
