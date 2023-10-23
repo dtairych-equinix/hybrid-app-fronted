@@ -59,6 +59,12 @@ function App() {
             : prevChartData[prevChartData.length - 1].cumulativeCost + costForLastRequest;
         
           const projectedCosts = costFactorChanges.map((change, index) => {
+
+            console.log('Interval:', interval);
+            console.log('Change:', change);
+            console.log('Previous Data:', previousData);
+            console.log('Data Size in MB:', dataSizeInMB);
+            console.log('Projected Cost Calculation:', previousData.projectedCosts[index] + dataSizeInMB * change.costFactor);
             if (interval < change.interval) {
               // If the current interval is before the change interval, use the previous cumulative cost
               return prevChartData.length === 0 ? 0 : prevChartData[prevChartData.length - 1].projectedCosts[index];
@@ -78,6 +84,8 @@ function App() {
             cumulativeCost: newCumulativeCost,
             projectedCosts: projectedCosts
           };
+
+          console.log('New Entry:', newEntry);
         
           return [...prevChartData, newEntry].slice(-300);
         });
@@ -144,7 +152,7 @@ function App() {
           />
         ))}
       </LineChart>
-      <p>Current Transport Mechanism: {selectedCostKey}</p>
+      <h3>Current Transport Mechanism: {selectedCostKey}</h3>
     </div>
   );
 }
