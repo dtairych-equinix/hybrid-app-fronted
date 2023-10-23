@@ -29,78 +29,75 @@ function App() {
     const pollServer = async () => {
       try {
         // ... existing code ...
-
+  
         const costFactorResponse = await axios.get(`${apiUrl}/get-cost-factor`);
         const { selectedCostKey, selectedCostValue } = costFactorResponse.data;
         setSelectedCostKey(selectedCostKey);
         setSelectedCostValue(selectedCostValue);
-
+  
         if (costFactorChanges.length === 0 || selectedCostValue !== costFactorChanges[costFactorChanges.length - 1].costFactor) {
           setCostFactorChanges(prev => [...prev, { interval: currentInterval, costFactor: selectedCostValue }]);
+  
+          // Update projected costs for all previous intervals
+          setChartData(prevChartData => {
+            return prevChartData.map(dataPoint => {
+              const newProjectedCosts = [...dataPoint.projectedCosts, dataPoint.cumulativeCost];  // Copy cumulative cost to the new index
+              return { ...dataPoint, projectedCosts: newProjectedCosts };
+            });
+          });
         }
-
+  
         const response = await axios.get(`${apiUrl}/poll`);
         const data = response.data;
-
+  
         setTotalRecords(data.totalRecords);
         setResponseTimes((prevResponseTimes) => [...prevResponseTimes, data.responseTime].slice(-300));
-
+  
         const dataSizeInMB = data.totalRecords * calculateDataSizePerRecordInMB();
         setCumulativeDataSize((prevCumulativeDataSize) => prevCumulativeDataSize + dataSizeInMB);
-
+  
         const costForLastRequest = dataSizeInMB * selectedCostValue;
         setCumulativeCost(prevCumulativeCost => prevCumulativeCost + costForLastRequest);
-
+  
         setChartData((prevChartData) => {
           const interval = currentInterval + 1;
-        
+  
           const newCumulativeCost = prevChartData.length === 0
             ? costForLastRequest
             : prevChartData[prevChartData.length - 1].cumulativeCost + costForLastRequest;
-        
+  
           const projectedCosts = costFactorChanges.map((change, index) => {
-
-            console.log('Interval:', interval);
-            console.log('Change:', change);
-            console.log('Previous Data:', previousData);
-            console.log('Data Size in MB:', dataSizeInMB);
-            console.log('Projected Cost Calculation:', previousData.projectedCosts[index] + dataSizeInMB * change.costFactor);
             if (interval < change.interval) {
-              // If the current interval is before the change interval, use the previous cumulative cost
               return prevChartData.length === 0 ? 0 : prevChartData[prevChartData.length - 1].projectedCosts[index];
             } else if (interval === change.interval) {
-              // If the current interval is exactly at the change interval, start from the cumulative cost at this point
               return newCumulativeCost;
             } else {
-              // If the current interval is after the change interval, add the cost for the last request using the old cost factor
               const previousData = prevChartData.find(d => d.interval === interval - 1) || { projectedCosts: Array(costFactorChanges.length).fill(0) };
               return previousData.projectedCosts[index] + dataSizeInMB * change.costFactor;
             }
           });
-        
+  
           const newEntry = {
             interval: interval,
             responseTime: data.responseTime,
             cumulativeCost: newCumulativeCost,
             projectedCosts: projectedCosts
           };
-
-          console.log('New Entry:', newEntry);
-        
+  
           return [...prevChartData, newEntry].slice(-300);
         });
-        
-
+  
         setCurrentInterval(prevInterval => prevInterval + 1);
         setCostForLastRequestDisplay(costForLastRequest);
       } catch (error) {
         console.log('Error fetching data -', error);
       }
     };
-
+  
     const interval = setInterval(pollServer, 10000);
     return () => clearInterval(interval);
-  }, [selectedCostValue, currentInterval]);
+  }, [selectedCostValue, currentInterval, costFactorChanges, apiUrl]);
+  
 
   const calculateDataSizePerRecordInMB = () => {
     return 0.1; // Assuming each record is 0.1 MB for illustration purposes
