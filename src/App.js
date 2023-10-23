@@ -85,7 +85,7 @@ function App() {
   return (
     <div className="container">
       <h1>Database Response Time Over Time</h1>
-      <LineChart width={1500} height={400} data={chartData}>
+      <LineChart width={1200} height={300} data={chartData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="interval" />
         <YAxis />
@@ -100,7 +100,7 @@ function App() {
       <p>Current Cost Factor Key: {selectedCostKey}</p>
       <p>Current Cost Factor Value: {selectedCostValue}</p>
       <p>Cost for Last Request: {costForLastRequestDisplay.toFixed(2)}</p>
-      <LineChart width={1500} height={400} data={chartData}>
+      <LineChart width={1200} height={300} data={chartData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="interval" />
         <YAxis />
