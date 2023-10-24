@@ -5,6 +5,8 @@ const cors = require('cors'); // Import the cors package
 const fs = require('fs');
 const app = express();
 const PORT = 4000;
+// const URL = "http://localhost";
+const URL = "http://database.techtalk.com";
 
 const origin = process.argv[2];
 
@@ -43,7 +45,7 @@ app.post('/update-cost-factor', (req, res) => {
     if (costFactors[costFactorKey] !== undefined) {
       selectedCostKey = costFactorKey;
       const costFactorValue = costFactors[costFactorKey];
-      
+
       res.status(200).json({
         message: 'Cost factor updated successfully.',
         costFactorKey: selectedCostKey,
@@ -57,7 +59,7 @@ app.post('/update-cost-factor', (req, res) => {
 
 app.get('/poll', async (req, res) => {
     try {
-        const response = await axios.get('http://database.techtalk.com:8080/poll');
+        const response = await axios.get(`${URL}:8080/poll`);
         res.json(response.data);
     } catch (error) {
         console.error('Error connecting to Go server:', error.message);

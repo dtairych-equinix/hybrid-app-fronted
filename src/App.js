@@ -18,6 +18,8 @@ function App() {
   const [cumulativeDataSize, setCumulativeDataSize] = useState(0);
   const [selectedCostKey, setSelectedCostKey] = useState('Internet');
   const [selectedCostValue, setSelectedCostValue] = useState(1.0);
+  const [prevSelectedCostKey, setPrevSelectedCostKey] = useState('Internet');
+  const [prevSelectedCostValue, setPrevSelectedCostValue] = useState(1.0);
   const [cumulativeCost, setCumulativeCost] = useState(0);
   const [chartData, setChartData] = useState([]);
   const [costForLastRequestDisplay, setCostForLastRequestDisplay] = useState(0);
@@ -25,6 +27,12 @@ function App() {
   const [costFactorChanges, setCostFactorChanges] = useState([]);
 
   const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:4000';  // default to localhost if not provided
+
+  const costScale = 0.625
+
+  useEffect(() => {
+    console.log(chartData);
+  }, [chartData]);
 
   useEffect(() => {
     const pollServer = async () => {
@@ -35,6 +43,63 @@ function App() {
         const { selectedCostKey, selectedCostValue } = costFactorResponse.data;
         setSelectedCostKey(selectedCostKey);
         setSelectedCostValue(selectedCostValue);
+
+        let newCostFactorChanges = [...costFactorChanges];
+        if (selectedCostKey !== prevSelectedCostKey) {
+          const changeInterval = currentInterval - 1;
+
+          
+
+          console.log(`Current Interval is: ${currentInterval}`)
+          setChartData((prevChartData) => {
+            const newData = prevChartData.map((data) => {
+              if (data.interval === currentInterval) {
+                console.log(`Updating data for interval ${currentInterval}`)
+                const newProjectedCosts = [...data.projectedCosts];
+                // Assuming you want to add a new entry at the end of the projectedCosts array.
+                newProjectedCosts[newCostFactorChanges.length - 1] = data.cumulativeCost;
+                return { ...data, projectedCosts: newProjectedCosts };
+              }
+              return data;
+            });
+            return newData;
+          });
+          
+
+          
+          // setChartData((prevChartData) => {
+          //   const lastDataIndex = prevChartData.length - 1;
+          
+          //   if (lastDataIndex >= 0) {
+          //     const lastData = prevChartData[lastDataIndex];
+          //     const newProjectedCosts = [...lastData.projectedCosts];
+          
+          //     newProjectedCosts[newCostFactorChanges.length - 1] = lastData.cumulativeCost;
+          
+          //     const updatedLastData = { ...lastData, projectedCosts: newProjectedCosts };
+          
+          //     const newData = [
+          //       ...prevChartData.slice(0, lastDataIndex),
+          //       updatedLastData,
+          //     ];
+          
+          //     return newData;
+          //   }
+          
+          //   return prevChartData;
+          // });
+
+          
+
+          // Add the new cost factor change
+          newCostFactorChanges.push({ interval: currentInterval, costFactor: prevSelectedCostValue });
+          setCostFactorChanges(newCostFactorChanges);
+          // newCostFactorChanges.push({ interval: currentInterval, costFactor: prevSelectedCostValue });
+          // setCostFactorChanges(newCostFactorChanges);
+
+    
+
+        }
   
         const response = await axios.get(`${apiUrl}/poll`);
         const data = response.data;
@@ -45,35 +110,125 @@ function App() {
         const dataSizeInMB = data.totalRecords * calculateDataSizePerRecordInMB();
         setCumulativeDataSize((prevCumulativeDataSize) => prevCumulativeDataSize + dataSizeInMB);
   
-        const costForLastRequest = dataSizeInMB * selectedCostValue;
+        const costForLastRequest = dataSizeInMB * selectedCostValue * costScale;
         setCumulativeCost(prevCumulativeCost => prevCumulativeCost + costForLastRequest);
   
         setChartData((prevChartData) => {
           // const newCostFactorChanges = [...costFactorChanges];
-
           const interval = currentInterval + 1;
+          console.log(`Starting work on new chart data.  Interval is: ${interval}`)
+
           const newCumulativeCost = prevChartData.length === 0
             ? costForLastRequest
             : prevChartData[prevChartData.length - 1].cumulativeCost + costForLastRequest;
   
-          let newCostFactorChanges = [...costFactorChanges];
-          if (costFactorChanges.length === 0 || selectedCostValue !== costFactorChanges[costFactorChanges.length - 1].costFactor) {
-            newCostFactorChanges.push({ interval: currentInterval, costFactor: selectedCostValue });
-          }
+              console.log(`About to calc projections.  The length of previous data is: ${prevChartData.length}`)
+              console.log(costFactorChanges)
 
-          if (costFactorChanges.length !== newCostFactorChanges.length) {
-            setCostFactorChanges(newCostFactorChanges);
-          }
-  
-          const projectedCosts = newCostFactorChanges.map((change, index) => {
-            if (interval < change.interval) {
-              return prevChartData.length === 0 ? 0 : prevChartData[prevChartData.length - 1].projectedCosts[index];
-            } else {
-              const previousData = prevChartData.find(d => d.interval === interval - 1) || { projectedCosts: Array(newCostFactorChanges.length).fill(0) };
-              return previousData.projectedCosts[index] + dataSizeInMB * change.costFactor;
-            }
-          });
-  
+              const projectedCosts = newCostFactorChanges.map((change, index) => {
+                
+                return prevChartData[prevChartData.length - 1].projectedCosts[index] + (dataSizeInMB * change.costFactor * costScale);
+                
+                // const changeStartIndex = change.interval - 1;
+
+                // if (prevChartData.length > 0 && prevChartData[prevChartData.length - 1].projectedCosts[index] !== undefined) {
+                  
+                // }
+                // // If for some reason the previous projected cost is not available, log a warning and use the cumulative cost.
+                // else {
+                //   console.warn(`Projected cost for index ${index} not found in previous data at interval ${interval}. Using cumulative cost instead.`);
+                //   return newCumulativeCost;
+                // }
+              // const projectedCosts = newCostFactorChanges.map((change, index) => {
+              //   // If we are at the interval where the cost change occurred, 
+              //   // set the projected cost to the cumulative cost.
+              //   if (interval === change.interval) {
+              //     return newCumulativeCost;
+              //   }
+              //   // If we are past the interval of the cost change,
+              //   // calculate the projected cost based on the previous projected cost and the cost factor.
+              //   else if (interval > change.interval) {
+              //     // Ensure there is previous data to refer to.
+              //     if (prevChartData.length > 0 && prevChartData[prevChartData.length - 1].projectedCosts[index] !== undefined) {
+              //       return prevChartData[prevChartData.length - 1].projectedCosts[index] + dataSizeInMB * change.costFactor;
+              //     }
+              //     // If for some reason the previous projected cost is not available, log a warning and use the cumulative cost.
+              //     else {
+              //       console.warn(`Projected cost for index ${index} not found in previous data. Using cumulative cost instead.`);
+              //       return newCumulativeCost;
+              //     }
+              //   }
+              //   // If we are before the interval of the cost change, 
+              //   // use the last known projected cost or 0 if none exists.
+              //   else {
+              //     return (prevChartData.length > 0 && prevChartData[prevChartData.length - 1].projectedCosts[index] !== undefined)
+              //       ? prevChartData[prevChartData.length - 1].projectedCosts[index] 
+              //       : 0;
+              //   }
+              // });
+              // const projectedCosts = newCostFactorChanges.map((change, index) => {
+              //   const changeStartIndex = change.interval - 1;
+              
+              //   // If we are at the interval where the cost change starts to take effect,
+              //   // set the projected cost to the cumulative cost.
+              //   if (interval === changeStartIndex) {
+              //     return newCumulativeCost;
+              //   }
+              //   // If we are past the interval where the cost change starts to take effect,
+              //   // calculate the projected cost based on the previous projected cost and the cost factor.
+              //   else if (interval > changeStartIndex) {
+              //     // Ensure there is previous data to refer to.
+              //     if (prevChartData.length > 0 && prevChartData[prevChartData.length - 1].projectedCosts[index] !== undefined) {
+              //       return prevChartData[prevChartData.length - 1].projectedCosts[index] + dataSizeInMB * change.costFactor;
+              //     }
+              //     // If for some reason the previous projected cost is not available, log a warning and use the cumulative cost.
+              //     else {
+              //       console.warn(`Projected cost for index ${index} not found in previous data at interval ${interval}. Using cumulative cost instead.`);
+              //       return newCumulativeCost;
+              //     }
+              //   }
+              //   // If we are before the interval where the cost change starts to take effect,
+              //   // use the last known projected cost or 0 if none exists.
+              //   else {
+              //     return (prevChartData.length > 0 && prevChartData[prevChartData.length - 1].projectedCosts[index] !== undefined)
+              //       ? prevChartData[prevChartData.length - 1].projectedCosts[index] 
+              //       : 0;
+              //   }
+              // });
+
+              
+              
+                // If we are before the interval where the cost change starts to take effect,
+                // set the projected cost to the cumulative cost at the same index.
+
+                // if (interval === change.interval && prevChartData.length > 0) {
+                //   const previousIntervalData = prevChartData.find(d => d.interval === change.interval - 1);
+                //   if (previousIntervalData) {
+                //     prevChartData = prevChartData.map(d => 
+                //       d.interval === change.interval - 1 ? { ...d, projectedCosts: d.projectedCosts.map((pc, i) => i === index ? previousIntervalData.cumulativeCost : pc) } : d
+                //     );
+                //   }
+                // }
+
+                // if (interval < changeStartIndex) {
+                //   const sameIndexData = prevChartData.find(d => d.interval === changeStartIndex);
+                //   return sameIndexData ? sameIndexData.cumulativeCost : 0;
+                // }
+                // // If we are at the interval where the cost change starts to take effect,
+                // // set the projected cost to the cumulative cost.
+                // else if (interval === changeStartIndex) {
+                //   return newCumulativeCost;
+                // }
+                // // If we are past the interval where the cost change starts to take effect,
+                // // calculate the projected cost based on the previous projected cost and the cost factor.
+                // else {
+                //   // Ensure there is previous data to refer to.
+                  
+                // }
+              });
+              
+              
+
           const newEntry = {
             interval: interval,
             responseTime: data.responseTime,
@@ -85,7 +240,8 @@ function App() {
         });
   
         
-  
+        setPrevSelectedCostKey(selectedCostKey)
+        setPrevSelectedCostValue(selectedCostValue)
         setCurrentInterval(prevInterval => prevInterval + 1);
         setCostForLastRequestDisplay(costForLastRequest);
       } catch (error) {
@@ -99,7 +255,7 @@ function App() {
   
 
   const calculateDataSizePerRecordInMB = () => {
-    return 0.1; // Assuming each record is 0.1 MB for illustration purposes
+    return 5; // Assuming each record is 0.1 MB for illustration purposes
   };
 
   const getLineColor = (index) => {
@@ -121,7 +277,7 @@ function App() {
       <p>Total Amount of Data: {totalRecords}</p>
       
       {/* <p>Last Response Time: {responseTimes.length > 0 ? parseFloat(responseTimes[responseTimes.length - 1].toFixed(2)) : 0} seconds</p> */}
-      <h4>Cumulative Data Size Requested: {cumulativeDataSize.toFixed(2)} MB</h4>
+      <h4>Cumulative Data Size Requested: {cumulativeDataSize.toFixed(2)} GB</h4>
       <br></br>
       <h3>Total Data Egress Costs over Time</h3>
       
