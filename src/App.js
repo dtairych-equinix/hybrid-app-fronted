@@ -272,7 +272,7 @@ function App() {
         <YAxis />
         <Tooltip />
         <Legend />
-        <Line type="monotone" dataKey="responseTime" name="Response Time (s)" stroke="#8884d8" strokeWidth={3} />
+        <Line type="monotone" dataKey="responseTime" name="Response Time (s)" stroke="#8884d8" strokeWidth={3} dot={false}/>
       </LineChart>
       <p>Total Amount of Data: {totalRecords}</p>
       
@@ -291,7 +291,7 @@ function App() {
         <YAxis />
         <Tooltip />
         <Legend />
-        <Line type="monotone" dataKey="cumulativeCost" name="Cumulative Cost" stroke="#82ca9d" strokeWidth={3}>
+        <Line type="monotone" dataKey="cumulativeCost" name="Cumulative Cost" stroke="#82ca9d" strokeWidth={3} dot={false}>
           {costFactorChanges.map((change, index) => (
             <Dot key={index} x={chartData.find(d => d.interval === change.interval)?.interval} stroke="red" strokeWidth={2} />
           ))}
